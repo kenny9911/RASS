@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { AgentCard } from './AgentCard';
 import { ProgressTimeline } from './ProgressTimeline';
 import { TokenUsageCard } from '../TokenUsage';
-import { Brain, Search, UserCheck, Sparkles } from 'lucide-react';
+import { Brain, Search, UserCheck, Target, Sparkles } from 'lucide-react';
 
 const agents = [
   {
@@ -32,6 +32,15 @@ const agents = [
     color: 'from-purple-500 to-pink-600',
     bgColor: 'bg-purple-50',
     textColor: 'text-purple-700'
+  },
+  {
+    id: 'strategy',
+    name: '招聘策略专家',
+    description: '验证画像适配度，制定招聘策略',
+    icon: Target,
+    color: 'from-orange-500 to-amber-600',
+    bgColor: 'bg-orange-50',
+    textColor: 'text-orange-700'
   }
 ];
 
@@ -70,7 +79,7 @@ export function AgentProgress() {
         </div>
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900">AI 智能分析中</h1>
         <p className="text-sm sm:text-base text-slate-500 mt-1.5 sm:mt-2 px-4">
-          三位AI专家正在协同分析您的职位需求
+          四位AI专家正在协同分析您的职位需求
         </p>
         
         {/* 迭代指示器 */}
@@ -78,7 +87,7 @@ export function AgentProgress() {
           <span className="text-sm text-primary-700">
             第 <span className="font-bold">{currentIteration || 1}</span> 轮分析
           </span>
-          <span className="text-xs text-primary-500">（最多3轮）</span>
+          <span className="text-xs text-primary-500">（最多5轮）</span>
         </div>
       </motion.div>
 

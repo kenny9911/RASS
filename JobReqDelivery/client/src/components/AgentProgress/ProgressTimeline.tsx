@@ -1,21 +1,23 @@
 import { motion } from 'framer-motion';
 import { AgentProgressEvent } from '../../types';
-import { Brain, Search, UserCheck, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Brain, Search, UserCheck, Target, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface ProgressTimelineProps {
   events: AgentProgressEvent[];
 }
 
-const agentIcons = {
+const agentIcons: Record<string, typeof Brain> = {
   analyzer: Brain,
   researcher: Search,
-  recruiter: UserCheck
+  recruiter: UserCheck,
+  strategy: Target
 };
 
-const agentColors = {
+const agentColors: Record<string, string> = {
   analyzer: 'text-blue-500 bg-blue-100',
   researcher: 'text-emerald-500 bg-emerald-100',
-  recruiter: 'text-purple-500 bg-purple-100'
+  recruiter: 'text-purple-500 bg-purple-100',
+  strategy: 'text-orange-500 bg-orange-100'
 };
 
 export function ProgressTimeline({ events }: ProgressTimelineProps) {

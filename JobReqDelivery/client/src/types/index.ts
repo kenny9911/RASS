@@ -108,6 +108,7 @@ export interface AnalysisTokenUsage {
     analyzer: TokenUsage;
     researcher: TokenUsage;
     recruiter: TokenUsage;
+    strategy: TokenUsage;
   };
   iterations: number;
 }
@@ -133,7 +134,7 @@ export interface AnalysisResult {
 // WebSocket 事件类型
 export interface AgentProgressEvent {
   type: 'agent_start' | 'agent_progress' | 'agent_complete' | 'iteration_complete' | 'analysis_complete' | 'error' | 'token_usage';
-  agent?: 'analyzer' | 'researcher' | 'recruiter';
+  agent?: 'analyzer' | 'researcher' | 'recruiter' | 'strategy';
   iteration?: number;
   message: string;
   data?: {

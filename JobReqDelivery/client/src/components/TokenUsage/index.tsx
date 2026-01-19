@@ -127,6 +127,9 @@ export function TokenUsageCard({ tokenUsage, isCompact = false }: TokenUsageCard
               <AgentUsageRow name="需求分析师" usage={breakdown.analyzer} color="bg-blue-500" />
               <AgentUsageRow name="市场研究员" usage={breakdown.researcher} color="bg-emerald-500" />
               <AgentUsageRow name="专业招聘官" usage={breakdown.recruiter} color="bg-purple-500" />
+              {breakdown.strategy && (
+                <AgentUsageRow name="招聘策略专家" usage={breakdown.strategy} color="bg-orange-500" />
+              )}
             </div>
           </motion.div>
         )}
@@ -208,6 +211,9 @@ export function TokenUsageCard({ tokenUsage, isCompact = false }: TokenUsageCard
             <AgentUsageRow name="需求分析师" usage={breakdown.analyzer} color="bg-blue-500" />
             <AgentUsageRow name="市场研究员" usage={breakdown.researcher} color="bg-emerald-500" />
             <AgentUsageRow name="专业招聘官" usage={breakdown.recruiter} color="bg-purple-500" />
+            {breakdown.strategy && (
+              <AgentUsageRow name="招聘策略专家" usage={breakdown.strategy} color="bg-orange-500" />
+            )}
           </div>
         </div>
       </div>
