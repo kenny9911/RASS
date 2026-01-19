@@ -1,0 +1,260 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 全局样式 */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Noto Sans SC', 'DM Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+/* 移动端优化 */
+input, textarea, select, button {
+  font-size: 16px; /* 防止iOS缩放 */
+  touch-action: manipulation;
+}
+
+/* 最小触摸目标 44x44px */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* 移动端安全区域 */
+@supports (padding: max(0px)) {
+  .safe-area-inset {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+}
+
+/* 平滑滚动容器 */
+.scroll-smooth-touch {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* 禁止文字选择（用于按钮等） */
+.select-none-touch {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 活跃状态高亮 */
+@media (hover: none) and (pointer: coarse) {
+  .active-highlight:active {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 加载动画 */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #e2e8f0 25%,
+    #f1f5f9 50%,
+    #e2e8f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* 玻璃态效果 */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* 渐变背景 */
+.gradient-bg {
+  background: linear-gradient(135deg, #1a365d 0%, #0f172a 100%);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+}
+
+/* 卡片悬浮效果 */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮按压效果 */
+.btn-press:active {
+  transform: scale(0.98);
+}
+
+/* 代理头像动画 */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+.agent-active::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: #14b8a6;
+  animation: pulse-ring 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+/* 底部安全区域 */
+.safe-bottom {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+/* 顶部安全区域 */
+.safe-top {
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+
+/* 移动端侧边栏优化 */
+.mobile-sidebar {
+  width: min(85vw, 320px);
+}
+
+/* 移动端弹出菜单 */
+.mobile-dropdown {
+  max-height: min(60vh, 400px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 滑动手势提示 */
+.swipe-indicator {
+  width: 36px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+  margin: 8px auto 12px;
+}
+
+/* 移动端卡片间距 */
+@media (max-width: 640px) {
+  .mobile-card-spacing {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+}
+
+/* 固定底部按钮区域 */
+.fixed-bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: linear-gradient(to top, white 80%, transparent);
+}
+
+/* 移动端表单优化 */
+@media (max-width: 640px) {
+  .mobile-form-field {
+    margin-bottom: 20px;
+  }
+  
+  .mobile-form-field label {
+    font-size: 14px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  
+  .mobile-form-field input,
+  .mobile-form-field textarea {
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 16px;
+  }
+}
+
+/* 手势反馈 */
+.gesture-feedback {
+  transition: transform 0.1s ease-out;
+}
+
+.gesture-feedback:active {
+  transform: scale(0.98);
+}
+
+/* 横向滚动容器（移动端） */
+.mobile-horizontal-scroll {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-horizontal-scroll > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
