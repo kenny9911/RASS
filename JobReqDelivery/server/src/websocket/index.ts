@@ -29,7 +29,7 @@ export function emitAgentProgress(
   requisitionId: string,
   event: {
     type: 'agent_start' | 'agent_progress' | 'agent_complete' | 'iteration_complete' | 'analysis_complete' | 'error' | 'token_usage';
-    agent?: 'analyzer' | 'researcher' | 'recruiter';
+    agent?: 'analyzer' | 'researcher' | 'recruiter' | 'strategy';
     iteration?: number;
     message: string;
     data?: any;

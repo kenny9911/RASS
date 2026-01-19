@@ -29,13 +29,19 @@ function AppContent() {
       dispatch({ type: 'SET_ANALYSIS_RESULT', payload: analysisData });
       dispatch({ type: 'SET_VIEW', payload: 'results' });
       
-      // 更新历史记录
+      // 如果 analysisResult 包含 tokenUsage，也更新状态
+      if (analysisData.tokenUsage) {
+        dispatch({ type: 'SET_TOKEN_USAGE', payload: analysisData.tokenUsage });
+      }
+      
+      // 更新历史记录 - 保存完整数据
       if (currentHistoryId) {
         updateAnalysis(currentHistoryId, {
           status: 'completed',
           completedAt: new Date().toISOString(),
           analysisResult: analysisData,
-          agentProgress: [...state.agentProgress, event]
+          agentProgress: [...state.agentProgress, event],
+          tokenUsage: analysisData.tokenUsage || state.tokenUsage || undefined
         });
       }
     }

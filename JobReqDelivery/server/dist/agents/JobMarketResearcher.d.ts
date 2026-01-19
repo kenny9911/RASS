@@ -7,6 +7,7 @@ export interface ResearcherResult {
 export declare class JobMarketResearcher {
     research(analyzerOutput: RequirementsAnalyzerOutput): Promise<JobMarketResearcherOutput>;
     researchWithUsage(analyzerOutput: RequirementsAnalyzerOutput): Promise<ResearcherResult>;
+    private ensureMustHaveCapabilities;
     private ensureCandidateProfile;
 }
 export declare const jobMarketResearcher: JobMarketResearcher;

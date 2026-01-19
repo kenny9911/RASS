@@ -10,8 +10,12 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw,
+  Coins,
+  MapPin
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { AnalysisHistoryEntry } from '../../services/historyStorage';
 import { useAnalysisHistory } from '../../hooks/useAnalysisHistory';
 
@@ -22,7 +26,7 @@ interface HistorySidebarProps {
 
 export function HistorySidebar({ onSelectHistory, currentId }: HistorySidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { history, isLoading, deleteAnalysis, clearHistory } = useAnalysisHistory();
+  const { history, isLoading, deleteAnalysis, clearHistory, refreshHistory } = useAnalysisHistory();
   const [showConfirmClear, setShowConfirmClear] = useState(false);
 
   const getStatusIcon = (status: string) => {
@@ -36,6 +40,24 @@ export function HistorySidebar({ onSelectHistory, currentId }: HistorySidebarPro
       default:
         return <Clock className="w-4 h-4 text-slate-400" />;
     }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-xs">已完成</span>;
+      case 'processing':
+        return <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">分析中</span>;
+      case 'failed':
+        return <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-xs">失败</span>;
+      default:
+        return null;
+    }
+  };
+
+  const formatCost = (cost?: number) => {
+    if (!cost) return null;
+    return `$${cost.toFixed(4)}`;
   };
 
   const formatDate = (dateStr: string) => {
@@ -125,12 +147,24 @@ export function HistorySidebar({ onSelectHistory, currentId }: HistorySidebarPro
                   {history.length}
                 </span>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-3 -mr-2 hover:bg-slate-100 active:bg-slate-200 rounded-xl transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 text-slate-600" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    refreshHistory();
+                    toast.success('已刷新历史记录');
+                  }}
+                  className="p-2.5 hover:bg-slate-100 active:bg-slate-200 rounded-xl transition-colors"
+                  title="刷新"
+                >
+                  <RefreshCw className="w-4 h-4 text-slate-500" />
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-2.5 -mr-2 hover:bg-slate-100 active:bg-slate-200 rounded-xl transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5 text-slate-600" />
+                </button>
+              </div>
             </div>
 
             {/* 历史列表 */}
@@ -160,24 +194,55 @@ export function HistorySidebar({ onSelectHistory, currentId }: HistorySidebarPro
                       onClick={() => {
                         onSelectHistory(entry);
                         setIsOpen(false);
+                        if (entry.status === 'completed') {
+                          toast.success(`已加载: ${entry.title || '未命名职位'}`);
+                        }
                       }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             {getStatusIcon(entry.status)}
                             <span className="font-medium text-slate-900 truncate text-sm sm:text-base">
                               {entry.title || '未命名职位'}
                             </span>
+                            {getStatusBadge(entry.status)}
                           </div>
-                          <div className="mt-1.5 text-xs text-slate-500 space-y-1">
+                          <div className="mt-1.5 text-xs text-slate-500 space-y-1.5">
                             {entry.department && (
-                              <p className="truncate">{entry.department}</p>
+                              <p className="truncate flex items-center gap-1">
+                                <span className="text-slate-400">部门:</span> {entry.department}
+                              </p>
+                            )}
+                            {entry.location && (
+                              <p className="truncate flex items-center gap-1">
+                                <MapPin className="w-3 h-3 text-slate-400" />
+                                {entry.location}
+                              </p>
                             )}
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="px-1.5 py-0.5 bg-slate-100 rounded text-xs">{entry.type}</span>
-                              <span className="text-slate-400">{formatDate(entry.createdAt)}</span>
+                              {entry.analysisResult?.iterations && (
+                                <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-xs">
+                                  {entry.analysisResult.iterations.length} 轮分析
+                                </span>
+                              )}
+                              {entry.tokenUsage?.totalCost && (
+                                <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded text-xs">
+                                  <Coins className="w-3 h-3" />
+                                  {formatCost(entry.tokenUsage.totalCost)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 text-slate-400">
+                              <Clock className="w-3 h-3" />
+                              {formatDate(entry.createdAt)}
+                              {entry.completedAt && entry.status === 'completed' && (
+                                <span className="text-green-500 ml-1">
+                                  · 完成于 {formatDate(entry.completedAt)}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>

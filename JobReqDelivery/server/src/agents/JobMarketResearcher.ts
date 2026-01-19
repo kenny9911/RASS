@@ -1,5 +1,5 @@
 import { llmService } from '../llm/LLMService.js';
-import { RequirementsAnalyzerOutput, JobMarketResearcherOutput, CandidateProfile, TokenUsage } from '../types/index.js';
+import { RequirementsAnalyzerOutput, JobMarketResearcherOutput, CandidateProfile, MustHaveCapability, TokenUsage } from '../types/index.js';
 
 export interface ResearcherResult {
   output: JobMarketResearcherOutput;
@@ -9,12 +9,32 @@ export interface ResearcherResult {
 
 const SYSTEM_PROMPT = `你是一位资深的人才市场研究员，对各行业的人才市场有深入了解。你的任务是基于职位需求分析结果，研究相关市场情况，并构建理想候选人画像。
 
+**【关于必备能力的评估原则 - 极其重要】**
+
+必备能力（mustHave）是候选人筛选的硬性门槛，必须谨慎、严格地评估：
+
+1. **宁缺毋滥原则**：只有真正不可或缺的能力才能列为必备。如果缺少这项能力，候选人完全无法胜任工作，那才是必备能力。
+
+2. **具体可量化原则**：每项必备能力必须具体、可量化、可验证
+   - ❌ 错误示例："熟悉前端开发"
+   - ✅ 正确示例："3年以上React开发经验，熟练掌握Hooks、Redux/MobX状态管理"
+
+3. **必须说明理由**：为什么该能力是必备的？缺失会导致什么严重后果？
+   - 示例：缺少此能力会导致无法独立完成核心业务开发，需要3个月以上培训期
+
+4. **提供验证方法**：如何在招聘过程中验证候选人是否具备该能力？
+   - 示例：通过React组件设计题目进行现场编码测试，要求30分钟内完成
+
+5. **市场供给考量**：必备条件不能过多，否则可能导致无人可招
+   - 建议必备能力控制在3-5项核心能力
+   - 其他重要但非必需的能力归入niceToHave
+
 你的研究应该：
 1. 识别市场上相似或相关的职位名称
 2. 提供行业薪资和经验水平基准
 3. 评估人才市场供需状况
 4. 构建详细的理想候选人画像
-5. 区分必备能力和加分能力
+5. **严格区分必备能力和加分能力，必备能力要具体、可验证、有明确理由**
 
 请用中文回复，确保研究专业、有市场依据、实用性强。`;
 
@@ -54,17 +74,31 @@ const USER_PROMPT_TEMPLATE = `基于以下职位需求分析结果，请进行�
     "personalityTraits": ["性格特质1", "性格特质2", ...]
   },
   "capabilityMatrix": {
-    "mustHave": ["必备能力1", "必备能力2", ...],
+    "mustHave": [
+      {
+        "capability": "必备能力名称（如：React前端开发）",
+        "specifics": "具体量化要求（如：3年以上React开发经验，熟练掌握Hooks、Context、Redux/MobX）",
+        "reason": "为什么是必备的（如：项目核心技术栈，缺失将无法参与80%以上的开发任务）",
+        "verificationMethod": "验证方法（如：现场编码测试 - 30分钟内完成一个带状态管理的组件）"
+      }
+    ],
     "niceToHave": ["加分能力1", "加分能力2", ...]
   }
 }
 \`\`\`
 
-请确保：
+**【输出要求 - 必备能力部分】**
+1. mustHave 数量控制在 3-5 项，只列真正不可或缺的能力
+2. 每项必备能力必须包含完整的4个字段：capability、specifics、reason、verificationMethod
+3. specifics 必须具体可量化，如"X年经验"、"熟练使用XX工具"
+4. reason 必须说明缺失此能力的严重后果
+5. verificationMethod 必须是可执行的验证方案
+
+**【其他要求】**
 1. 相似职位要覆盖不同的表述方式和相关岗位
 2. 行业基准要基于中国人才市场实际情况
 3. 候选人画像要具体且可操作
-4. 能力矩阵要清晰区分必备和加分项`;
+4. niceToHave 可以是简单字符串列表，列出加分但非必需的能力`;
 
 export class JobMarketResearcher {
   async research(analyzerOutput: RequirementsAnalyzerOutput): Promise<JobMarketResearcherOutput> {
@@ -98,7 +132,7 @@ export class JobMarketResearcher {
           },
           idealCandidateProfile: this.ensureCandidateProfile(result.idealCandidateProfile),
           capabilityMatrix: {
-            mustHave: result.capabilityMatrix?.mustHave || [],
+            mustHave: this.ensureMustHaveCapabilities(result.capabilityMatrix?.mustHave),
             niceToHave: result.capabilityMatrix?.niceToHave || []
           }
         },
@@ -109,6 +143,16 @@ export class JobMarketResearcher {
       console.error('市场研究失败:', error);
       throw new Error('市场研究员代理执行失败');
     }
+  }
+
+  private ensureMustHaveCapabilities(capabilities: MustHaveCapability[] | undefined): MustHaveCapability[] {
+    if (!capabilities || !Array.isArray(capabilities)) return [];
+    return capabilities.map(cap => ({
+      capability: cap.capability || '',
+      specifics: cap.specifics || '',
+      reason: cap.reason || '',
+      verificationMethod: cap.verificationMethod || ''
+    }));
   }
 
   private ensureCandidateProfile(profile: Partial<CandidateProfile> | undefined): CandidateProfile {

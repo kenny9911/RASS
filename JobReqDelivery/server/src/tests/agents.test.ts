@@ -187,7 +187,26 @@ describe('Professional Recruiter Agent', () => {
         personalityTraits: ['细心', '逻辑性强', '善于沟通']
       },
       capabilityMatrix: {
-        mustHave: ['SQL查询', '数据处理', '报表制作'],
+        mustHave: [
+          {
+            capability: 'SQL查询',
+            specifics: '熟练使用SQL进行数据查询和分析',
+            reason: '日常数据分析工作的基础技能',
+            verificationMethod: '现场SQL题目测试'
+          },
+          {
+            capability: '数据处理',
+            specifics: '能够使用Excel或Python进行数据清洗和处理',
+            reason: '数据分析前置工作必备能力',
+            verificationMethod: '数据处理实操测试'
+          },
+          {
+            capability: '报表制作',
+            specifics: '能够制作清晰易懂的数据报表',
+            reason: '输出业务洞察的必要手段',
+            verificationMethod: '提供过往报表作品'
+          }
+        ],
         niceToHave: ['Python编程', '数据可视化', '机器学习基础']
       }
     };

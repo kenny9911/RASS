@@ -1,10 +1,11 @@
 import { requirementsAnalyzer } from './RequirementsAnalyzer.js';
 import { jobMarketResearcher } from './JobMarketResearcher.js';
 import { professionalRecruiter } from './ProfessionalRecruiter.js';
+import { recruitingStrategyAgent } from './RecruitingStrategyAgent.js';
 import { emitAgentProgress } from '../websocket/index.js';
 import { llmService } from '../llm/LLMService.js';
-const MAX_ITERATIONS = 3;
-const SATISFACTION_THRESHOLD = 8; // 满意度阈值（1-10分）
+const MAX_ITERATIONS = 5;
+const SATISFACTION_THRESHOLD = 9; // 满意度阈值（1-10分），需要达到90%才算满意
 // 创建空的 TokenUsage
 function createEmptyUsage() {
     return { promptTokens: 0, completionTokens: 0, totalTokens: 0, cost: 0 };
@@ -35,7 +36,8 @@ export class AgentOrchestrator {
             breakdown: {
                 analyzer: createEmptyUsage(),
                 researcher: createEmptyUsage(),
-                recruiter: createEmptyUsage()
+                recruiter: createEmptyUsage(),
+                strategy: createEmptyUsage()
             },
             iterations: 0
         };
@@ -128,37 +130,62 @@ export class AgentOrchestrator {
                         latencyMs: recruiterResult.latencyMs
                     }
                 });
-                // 保存迭代结果
+                // 步骤4：招聘策略验证
+                this.emit('agent_start', '招聘策略专家开始验证...', { agent: 'strategy' });
+                const strategyResult = await recruitingStrategyAgent.validateWithUsage(requisition, analyzerOutput, researcherOutput, recruiterOutput);
+                const strategyOutput = strategyResult.output;
+                this.updateTokenUsage('strategy', strategyResult.usage, strategyResult.latencyMs);
+                this.emit('agent_complete', '策略验证完成', {
+                    agent: 'strategy',
+                    data: {
+                        overallFitScore: strategyOutput.fitAssessment.overallFitScore,
+                        finalVerdict: strategyOutput.fitAssessment.finalVerdict,
+                        jobFitScore: strategyOutput.fitAssessment.jobRequirementsFit.score,
+                        marketFitScore: strategyOutput.fitAssessment.marketRealityFit.score,
+                        clientFitScore: strategyOutput.fitAssessment.clientExpectationsFit.score,
+                        usage: strategyResult.usage,
+                        latencyMs: strategyResult.latencyMs
+                    }
+                });
+                // 保存迭代结果（包含策略输出）
                 const iteration = {
                     iteration: currentIteration,
                     analyzerOutput,
                     researcherOutput,
                     recruiterOutput,
+                    strategyOutput,
                     timestamp: new Date()
                 };
                 analysisResult.iterations.push(iteration);
-                // 检查满意度
-                if (recruiterOutput.satisfactionScore >= SATISFACTION_THRESHOLD) {
+                // 基于策略代理的适配评估判断是否满意
+                const fitScore = strategyOutput.fitAssessment.overallFitScore;
+                const isApproved = strategyOutput.fitAssessment.finalVerdict === 'approved';
+                if (fitScore >= SATISFACTION_THRESHOLD && isApproved) {
                     isSatisfied = true;
-                    console.log(`✅ 招聘官满意度达标 (${recruiterOutput.satisfactionScore}/10)，结束迭代`);
+                    console.log(`✅ 策略验证通过 - 适配评分 ${fitScore.toFixed(1)}/10，判定: ${strategyOutput.fitAssessment.finalVerdict}`);
                 }
                 else {
-                    console.log(`⏳ 招聘官满意度 ${recruiterOutput.satisfactionScore}/10，继续优化...`);
+                    console.log(`⏳ 策略验证 - 适配评分 ${fitScore.toFixed(1)}/10，判定: ${strategyOutput.fitAssessment.finalVerdict}，继续优化...`);
                     if (currentIteration < MAX_ITERATIONS) {
-                        this.emit('agent_progress', `满意度 ${recruiterOutput.satisfactionScore}/10，进行下一轮优化`, { iteration: currentIteration });
+                        const revisions = strategyOutput.fitAssessment.revisionSuggestions.slice(0, 2).join('；') || '继续完善';
+                        this.emit('agent_progress', `适配评分 ${fitScore.toFixed(1)}/10，建议: ${revisions}`, { iteration: currentIteration });
                     }
                 }
             }
             // 获取最后一次迭代的结果作为最终结果
             const finalIteration = analysisResult.iterations[analysisResult.iterations.length - 1];
             const finalRecruiterOutput = finalIteration.recruiterOutput;
-            // 更新最终输出
+            const finalStrategyOutput = finalIteration.strategyOutput;
+            // 更新最终输出（使用策略代理验证后的候选人画像）
             analysisResult.finalOutput = {
-                candidateProfile: finalRecruiterOutput.candidateProfile,
+                candidateProfile: finalStrategyOutput?.refinedCandidateProfile || finalRecruiterOutput.candidateProfile,
                 searchKeywords: finalRecruiterOutput.searchKeywords,
                 difficultyLevel: finalRecruiterOutput.difficultyLevel,
                 difficultyReasoning: finalRecruiterOutput.difficultyReasoning,
-                clarifyingQuestions: finalRecruiterOutput.openQuestions
+                clarifyingQuestions: finalRecruiterOutput.openQuestions,
+                fitAssessment: finalStrategyOutput?.fitAssessment,
+                recruitingStrategy: finalStrategyOutput?.recruitingStrategy,
+                riskAnalysis: finalStrategyOutput?.riskAnalysis
             };
             analysisResult.status = 'completed';
             analysisResult.completedAt = new Date();
@@ -171,7 +198,8 @@ export class AgentOrchestrator {
             console.log(`   总耗时: ${(this.tokenUsage.totalLatencyMs / 1000).toFixed(2)}s`);
             console.log(`   迭代次数: ${currentIteration}`);
             console.log(`\n🎉 分析完成，共进行 ${currentIteration} 轮迭代`);
-            console.log(`📊 最终满意度: ${finalRecruiterOutput.satisfactionScore}/10`);
+            console.log(`📊 最终适配评分: ${finalStrategyOutput?.fitAssessment.overallFitScore.toFixed(1) || 'N/A'}/10`);
+            console.log(`✅ 最终判定: ${finalStrategyOutput?.fitAssessment.finalVerdict || 'N/A'}`);
             console.log(`🔑 搜索关键词: ${finalRecruiterOutput.searchKeywords.join(', ')}`);
             console.log(`📈 难度评估: ${finalRecruiterOutput.difficultyLevel}`);
             // 发送完成事件（包含 token 使用统计）

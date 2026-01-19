@@ -37,11 +37,56 @@ export interface ClarifyingQuestion {
     answer?: string;
     isAnswered: boolean;
 }
+export interface MustHaveCapability {
+    capability: string;
+    specifics: string;
+    reason: string;
+    verificationMethod: string;
+}
+export interface FitAssessment {
+    jobRequirementsFit: {
+        score: number;
+        matchedRequirements: string[];
+        gapAnalysis: string[];
+        recommendation: string;
+    };
+    marketRealityFit: {
+        score: number;
+        feasibility: 'high' | 'medium' | 'low';
+        marketAvailability: string;
+        timeToFillEstimate: string;
+        recommendation: string;
+    };
+    clientExpectationsFit: {
+        score: number;
+        alignmentWithBusinessGoals: string;
+        potentialConcerns: string[];
+        recommendation: string;
+    };
+    overallFitScore: number;
+    finalVerdict: 'approved' | 'needs_revision' | 'major_concerns';
+    revisionSuggestions: string[];
+}
+export interface RecruitingStrategyOutput {
+    refinedCandidateProfile: CandidateProfile;
+    fitAssessment: FitAssessment;
+    recruitingStrategy: {
+        primaryChannels: string[];
+        searchApproach: string;
+        screeningCriteria: string[];
+        interviewFocus: string[];
+    };
+    riskAnalysis: {
+        hiringRisks: string[];
+        mitigationStrategies: string[];
+    };
+}
 export interface AgentIteration {
     iteration: number;
     analyzerOutput: RequirementsAnalyzerOutput;
     researcherOutput: JobMarketResearcherOutput;
     recruiterOutput: ProfessionalRecruiterOutput;
+    strategyOutput?: RecruitingStrategyOutput;
     timestamp: Date;
 }
 export interface RequirementsAnalyzerOutput {
@@ -61,7 +106,7 @@ export interface JobMarketResearcherOutput {
     };
     idealCandidateProfile: CandidateProfile;
     capabilityMatrix: {
-        mustHave: string[];
+        mustHave: MustHaveCapability[];
         niceToHave: string[];
     };
 }
@@ -85,6 +130,9 @@ export interface AnalysisResult {
         difficultyLevel: 'easy' | 'moderate' | 'hard' | 'very_hard';
         difficultyReasoning: string;
         clarifyingQuestions: ClarifyingQuestion[];
+        fitAssessment?: FitAssessment;
+        recruitingStrategy?: RecruitingStrategyOutput['recruitingStrategy'];
+        riskAnalysis?: RecruitingStrategyOutput['riskAnalysis'];
     };
     status: 'processing' | 'completed' | 'failed';
     createdAt: Date;
@@ -92,7 +140,7 @@ export interface AnalysisResult {
 }
 export interface AgentProgressEvent {
     type: 'agent_start' | 'agent_progress' | 'agent_complete' | 'iteration_complete' | 'analysis_complete' | 'error';
-    agent?: 'analyzer' | 'researcher' | 'recruiter';
+    agent?: 'analyzer' | 'researcher' | 'recruiter' | 'strategy';
     iteration?: number;
     message: string;
     data?: any;
@@ -120,7 +168,7 @@ export interface LLMResponse {
     latencyMs: number;
 }
 export interface AgentTokenUsage {
-    agent: 'analyzer' | 'researcher' | 'recruiter';
+    agent: 'analyzer' | 'researcher' | 'recruiter' | 'strategy';
     usage: TokenUsage;
     latencyMs: number;
 }
@@ -132,6 +180,7 @@ export interface AnalysisTokenUsage {
         analyzer: TokenUsage;
         researcher: TokenUsage;
         recruiter: TokenUsage;
+        strategy: TokenUsage;
     };
     iterations: number;
 }

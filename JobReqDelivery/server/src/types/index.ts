@@ -45,12 +45,63 @@ export interface ClarifyingQuestion {
   isAnswered: boolean;
 }
 
+// 必备能力详细定义
+export interface MustHaveCapability {
+  capability: string;           // 能力名称
+  specifics: string;            // 具体要求（如：3年以上React开发经验，熟悉Hooks和Redux）
+  reason: string;               // 为什么是必备的（缺失会导致什么问题）
+  verificationMethod: string;   // 如何验证（面试问题/实操测试/作品集等）
+}
+
+// 适配评估
+export interface FitAssessment {
+  jobRequirementsFit: {
+    score: number;              // 1-10
+    matchedRequirements: string[];
+    gapAnalysis: string[];
+    recommendation: string;
+  };
+  marketRealityFit: {
+    score: number;              // 1-10
+    feasibility: 'high' | 'medium' | 'low';
+    marketAvailability: string;
+    timeToFillEstimate: string;
+    recommendation: string;
+  };
+  clientExpectationsFit: {
+    score: number;              // 1-10
+    alignmentWithBusinessGoals: string;
+    potentialConcerns: string[];
+    recommendation: string;
+  };
+  overallFitScore: number;      // 三个维度的平均分
+  finalVerdict: 'approved' | 'needs_revision' | 'major_concerns';
+  revisionSuggestions: string[];
+}
+
+// 招聘策略代理输出
+export interface RecruitingStrategyOutput {
+  refinedCandidateProfile: CandidateProfile;
+  fitAssessment: FitAssessment;
+  recruitingStrategy: {
+    primaryChannels: string[];      // 主要招聘渠道
+    searchApproach: string;         // 搜索策略
+    screeningCriteria: string[];    // 筛选标准
+    interviewFocus: string[];       // 面试重点
+  };
+  riskAnalysis: {
+    hiringRisks: string[];          // 招聘风险
+    mitigationStrategies: string[]; // 风险缓解策略
+  };
+}
+
 // 代理迭代结果
 export interface AgentIteration {
   iteration: number;
   analyzerOutput: RequirementsAnalyzerOutput;
   researcherOutput: JobMarketResearcherOutput;
   recruiterOutput: ProfessionalRecruiterOutput;
+  strategyOutput?: RecruitingStrategyOutput;  // 招聘策略代理输出
   timestamp: Date;
 }
 
@@ -74,8 +125,8 @@ export interface JobMarketResearcherOutput {
   };
   idealCandidateProfile: CandidateProfile;
   capabilityMatrix: {
-    mustHave: string[];
-    niceToHave: string[];
+    mustHave: MustHaveCapability[];  // 必备能力（详细定义）
+    niceToHave: string[];            // 加分能力
   };
 }
 
@@ -102,6 +153,9 @@ export interface AnalysisResult {
     difficultyLevel: 'easy' | 'moderate' | 'hard' | 'very_hard';
     difficultyReasoning: string;
     clarifyingQuestions: ClarifyingQuestion[];
+    fitAssessment?: FitAssessment;           // 适配评估结果
+    recruitingStrategy?: RecruitingStrategyOutput['recruitingStrategy'];  // 招聘策略
+    riskAnalysis?: RecruitingStrategyOutput['riskAnalysis'];              // 风险分析
   };
   status: 'processing' | 'completed' | 'failed';
   createdAt: Date;
@@ -111,7 +165,7 @@ export interface AnalysisResult {
 // WebSocket 事件类型
 export interface AgentProgressEvent {
   type: 'agent_start' | 'agent_progress' | 'agent_complete' | 'iteration_complete' | 'analysis_complete' | 'error';
-  agent?: 'analyzer' | 'researcher' | 'recruiter';
+  agent?: 'analyzer' | 'researcher' | 'recruiter' | 'strategy';
   iteration?: number;
   message: string;
   data?: any;
@@ -147,7 +201,7 @@ export interface LLMResponse {
 
 // 代理 Token 使用统计
 export interface AgentTokenUsage {
-  agent: 'analyzer' | 'researcher' | 'recruiter';
+  agent: 'analyzer' | 'researcher' | 'recruiter' | 'strategy';
   usage: TokenUsage;
   latencyMs: number;
 }
@@ -161,6 +215,7 @@ export interface AnalysisTokenUsage {
     analyzer: TokenUsage;
     researcher: TokenUsage;
     recruiter: TokenUsage;
+    strategy: TokenUsage;
   };
   iterations: number;
 }
