@@ -40,14 +40,14 @@ async function startServer() {
   // Socket.io 配置
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:5183',
+      origin: process.env.CLIENT_URL || 'http://localhost:5271',
       methods: ['GET', 'POST']
     }
   });
 
   // 中间件
   app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5183'
+    origin: process.env.CLIENT_URL || 'http://localhost:5271'
   }));
   app.use(express.json());
 
@@ -66,7 +66,7 @@ async function startServer() {
   // WebSocket 设置
   setupWebSocket(io);
 
-  const PORT = process.env.PORT || 3001;
+  const PORT = process.env.PORT || 3275;
 
   httpServer.listen(PORT, () => {
     console.log(`🚀 服务器运行在 http://localhost:${PORT}`);

@@ -7,7 +7,7 @@ import { recruitingStrategyAgent } from './RecruitingStrategyAgent.js';
 import { emitAgentProgress } from '../websocket/index.js';
 import { llmService } from '../llm/LLMService.js';
 
-const MAX_ITERATIONS = 5;
+const MAX_ITERATIONS = 3;
 const SATISFACTION_THRESHOLD = 9; // 满意度阈值（1-10分），需要达到90%才算满意
 
 // 创建空的 TokenUsage

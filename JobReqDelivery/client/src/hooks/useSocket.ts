@@ -23,7 +23,7 @@ export function useSocket(requisitionId: string | null, options: UseSocketOption
     }
 
     // 创建 socket 连接 - 连接到后端服务器
-    const serverUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
+    const serverUrl = import.meta.env.DEV ? 'http://localhost:3275' : '';
     socketRef.current = io(serverUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
